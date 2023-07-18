@@ -57,3 +57,18 @@ let tokenizeOperator_Test (inp: string, expOp: string, expRem: string) =
         | Operator o -> o |> should equal expOp
         | x -> Assert.Fail $"Wrong token {x}"
     rem |> toString |> should equal expRem
+
+[<Test>]
+[<TestCase("(123", "(", "123")>]
+[<TestCase(")+123", ")", "+123")>]
+[<TestCase("12(", "", "12(")>]
+let tokenizeParen_Test (inp: string, expPar: string, expRem: string) =
+    let (rem, par: TokenType Option) = inp |> toList |> tokenizeParen
+    if expPar = "" then
+        par |> should equal None
+    else
+        match par.Value with
+        | ParenOpen -> "(" |> should equal expPar
+        | ParenClose -> ")" |> should equal expPar
+        | x -> Assert.Fail $"Wrong token {x}"
+    rem |> toString |> should equal expRem

@@ -57,3 +57,9 @@ module Tokenizer =
         let (op, rem) = parseOperator feed []
         if op = [] then (rem, None)
         else (rem, op |> toString |> Operator |> Some)
+
+    let tokenizeParen (feed: char list) =
+        match feed with
+        | '('::tail -> (tail, ParenOpen |> Some)
+        | ')'::tail -> (tail, ParenClose |> Some)
+        | _ -> (feed, None)
