@@ -37,13 +37,12 @@ let tokenizeNumber_Test (inp: string, expWhole: string, expFrac: string, expRem:
     let (rem, num) = tokenizeNumber (toList inp)
     if (expWhole = "" && expFrac = "") then
         num |> should equal None
-        rem |> toString |> should equal expRem
     else
         match num.Value with
         | Number(w, f) ->
             (w, f) |> should equal (expWhole, expFrac)
-        | o -> Assert.Fail $"Wrong token {o}"
-        rem |> toString |> should equal expRem
+        | x -> Assert.Fail $"Wrong token {x}"
+    rem |> toString |> should equal expRem
 
 [<Test>]
 [<TestCase("+7", "+", "7")>]
