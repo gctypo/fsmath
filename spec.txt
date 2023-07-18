@@ -1,0 +1,31 @@
+Syntax:
+
+PAREN_EXPR = <PAREN_L> <EXPRESSION> <PAREN_R>
+EXPRESSION = <BIN_OPER_PAIR> | <UN_OPER_PAIR> | <PAREN_EXPR>
+BIN_OPER_PAIR = <NUMBER> <BIN_OPER> <NUMBER>
+              | <BIN_OPER_PAIR> <BIN_OPER> <NUMBER>
+              | <PAREN_EXPR> <BIN_OPER> <NUMBER>
+UN_OPER_PAIR = <UN_OPER> <NUMBER> | <UN_OPER> <PAREN_EXPR>
+
+---------------------------------
+
+Tokens:
+
+NUMBER = <DIGIT_SET> | '.' <DIGIT_SET> | <DIGIT_SET> '.' <DIGIT_SET>
+BIN_OPER = '+' | '-' | '*' | '/' | '^'
+UN_OPER = '-'
+PAREN_L = '('
+PAREN_R = ')'
+
+- Whitespace will end a token if not ended otherwise
+
+---------------------------------
+
+Token component:
+
+DIGIT_SET = <DIGIT> | <DIGIT> <DIGIT_SET>
+DIGIT = [0-9]
+IDENT_SET = <IDENT_START> | <IDENT_START> <IDENT_BODY_SET>
+IDENT_BODY_SET = <IDENT_BODY> | <IDENT_BODY> <IDENT_BODY_SET>
+IDENT_BODY = <IDENT_START> | [0-9]
+IDENT_START = '_' | [a-z] | [A-Z]
