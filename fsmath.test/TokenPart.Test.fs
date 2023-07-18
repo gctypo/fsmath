@@ -47,7 +47,8 @@ let tokenizeNumber_Test (inp: string, expWhole: string, expFrac: string, expRem:
 [<Test>]
 [<TestCase("+7", "+", "7")>]
 [<TestCase("78+", "", "78+")>]
-[<TestCase("++", "++", "")>]
+[<TestCase("++", "+", "+")>]
+[<TestCase("/^", "/", "^")>]
 let tokenizeOperator_Test (inp: string, expOp: string, expRem: string) =
     let (rem, op) = inp |> toList |> tokenizeOperator
     if expOp = "" then

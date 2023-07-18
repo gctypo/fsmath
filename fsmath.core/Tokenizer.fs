@@ -44,12 +44,14 @@ module Tokenizer =
         if (w = [] && p = []) then (rem, None)
         else (rem, Number(toString w, toString p) |> Some)
 
-    let isOperator (c: char) =
-        "+-*/^~" .Contains(c)
+    let isOperator (op: char list) (c: char) =
+        let str = (op @ [c]) |> toString
+        [| "+"; "-"; "*"; "/"; "^" |]
+        |> Array.exists (fun o -> o.StartsWith str)
 
     let rec parseOperator (feed: char list) (op: char list) =
         match feed with
-        | c::tail when isOperator c ->
+        | c::tail when isOperator op c ->
             op @ [c] |> parseOperator tail
         | _ -> (op, feed)
 
