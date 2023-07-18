@@ -8,10 +8,6 @@ type TokenType =
     | ParenOpen
     | ParenClose
 
-type TokenizerResult =
-    | Complete of TokenType
-    | Partial of partial: string
-    | Empty
 
 module Tokenizer =
 
@@ -47,4 +43,17 @@ module Tokenizer =
         let (w, p, rem) = parseNumber feed []
         if (w = [] && p = []) then (rem, None)
         else (rem, Number(toString w, toString p) |> Some)
-        //(rem, Number(toString w, toString p) |> Some)
+
+    let isOperator (c: char) =
+        "+-*/^~" .Contains(c)
+
+    let rec parseOperator (feed: char list) (op: char list) =
+        match feed with
+        | c::tail when isOperator c ->
+            op @ [c] |> parseOperator tail
+        | _ -> (op, feed)
+
+    let tokenizeOperator (feed: char list) =
+        let (op, rem) = parseOperator feed []
+        if op = [] then (rem, None)
+        else (rem, op |> toString |> Operator |> Some)
