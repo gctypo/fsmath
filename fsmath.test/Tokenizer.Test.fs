@@ -1,4 +1,4 @@
-module fsmath.test
+module fsmath.test.Tokenizer_Test
 
 open NUnit.Framework
 open FsUnit
