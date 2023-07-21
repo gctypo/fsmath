@@ -48,10 +48,10 @@ let toksToString_Test_General () =
     |> should equal "123.234 * ( - .456 ) ^ 2"
 
 [<Test>]
-[<TestCase([|"("; "-"; "1.22"; ")"; "^"; "2"|], "- 1.22", "^ 2")>]
-let syntaxParen_Test (tokens: string[], expBody: string, expRem: string) =
-    let (rem, grp) =
+[<TestCase([|"("; "-"; "1.22"; ")"; "^"; "2"|], "((- 1.22) ^ 2)")>]
+let syntaxParen_Test (tokens: string[], expBody: string) =
+    let res =
         tokens |> Array.toList |> List.map makeToken
         |> syntaxParen
-    grp |> nodeToString |> should equal expBody
-    rem |> toksToString |> should equal expRem
+    res |> nodeToString |> should equal expBody
+    ()
