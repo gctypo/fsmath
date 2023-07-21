@@ -7,13 +7,13 @@ open FsUnit
 open fsmath.core
 open fsmath.core.Syntax
 
+
 let makeNumber (num: string) =
     if (num.Contains '.') then
         let sp = num.Split('.')
         Number(sp[0], sp[1])
     else
         Number(num, "")
-
 
 let makeToken (shorthand: string) =
     match shorthand with
@@ -35,6 +35,10 @@ let private TEST_TOKENS =
         Operator("^");
         Number("2", "") ]
 
+// FsTest constraint for throw message with substring
+let throwWithPartialMessage (expected: string) (t: Type) =
+    Throws.TypeOf(t).And.Message.Contains(expected)
+
 [<Test>]
 let makeToken_Test () =
     [ "123.234"; "*"; "("; "-"; ".456"; ")"; "^"; "2" ]
@@ -49,9 +53,17 @@ let toksToString_Test_General () =
 
 [<Test>]
 [<TestCase([|"("; "-"; "1.22"; ")"; "^"; "2"|], "((- 1.22) ^ 2)")>]
+[<TestCase([|"(";")";"*";"(";"(";")";")"|], "(() * (()))")>]
 let syntaxParen_Test (tokens: string[], expBody: string) =
-    let res =
-        tokens |> Array.toList |> List.map makeToken
-        |> syntaxParen
-    res |> nodeToString |> should equal expBody
-    ()
+    tokens |> Array.toList |> List.map makeToken
+    |> syntaxParen
+    |> nodeToString |> should equal expBody
+
+[<Test>]
+[<TestCase([|"(";"1.22"|], "1.22")>]
+[<TestCase([|"-";"(";"-";"(";"1.22"|], "1.22")>]
+[<TestCase([|"(";"1.22";")";")"|], "(1.22)")>]
+let syntaxParen_Test_Fail (tokens: string[], expMsg: string) =
+    let inp = tokens |> Array.toList |> List.map makeToken
+    (fun () -> syntaxParen inp |> ignore)
+    |> should (throwWithPartialMessage $": {expMsg}") typeof<FormatException>
