@@ -9,6 +9,7 @@
 
     <ItemGroup>
         <Compile Include="Tokenizer.Test.fs" />
+        <Compile Include="Syntax.Test.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 
