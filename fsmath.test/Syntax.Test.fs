@@ -155,6 +155,6 @@ let syntaxBinary_Test_WithinUnary () =
 [<TestCase([|"-";"(";"3";"+";"4";")";"*";"100"|], "((-(3+4))*100)")>]
 let parseToTree_Test (tokens: string[], expr: string) =
     let body = tokens |> Array.toList |> List.map makeToken
-    parseToTree body
-    |> nodeToString
-    |> should equal expr
+    let parsed = parseToTree body
+    parsed |> nodeToString |> should equal expr
+    parsed |> should not' (be ofCase <@UnparsedGroup@>)

@@ -104,7 +104,7 @@ module Syntax =
             | Number _ -> EvalNode node
             | Operator o -> OperNode o
             | _ -> OtherNode node
-        | UnparsedGroup l -> EvalNode node
+        | UnparsedGroup _ -> EvalNode node
         | BinaryExpression _ -> EvalNode node
         | UnaryExpression _ -> EvalNode node
         | LiteralValue _ -> EvalNode node
@@ -140,8 +140,10 @@ module Syntax =
             | BinaryExpression(l, o, r) ->
                 (descend l, o, descend r) |> BinaryExpression
             | LiteralValue _ | TokenWrapper _ -> node
+
         // binds binop pairs while filtering nodes
-        let rec groupBinaryOrd (ops: string[]) (unparsed: SyntaxNode list) (parsed: SyntaxNode list) =
+        let rec groupBinaryOrd (ops: string[]) (unparsed: SyntaxNode list)
+                (parsed: SyntaxNode list) =
             match unparsed with
             // {}3 * 4 * 2 -> {}(3*4) * 2   Does NOT add new expression to parsed list
             | EvalNode(lhs)::OperNode(op)::EvalNode(rhs)::tail when ops |> Array.contains op ->
@@ -153,6 +155,7 @@ module Syntax =
                 |> groupBinaryOrd ops tail
             // {({3 + 4}*2)} -> done
             | [] -> parsed
+
         groupBinaryOrd ops unparsed [] |> packNodes
 
     let BIN_OPS_POW = [|"^"|]
