@@ -1,6 +1,7 @@
 namespace fsmath.core
 
 open System
+open System.Linq.Expressions
 
 type SyntaxNode =
     | UnparsedGroup of group: SyntaxNode list
@@ -65,8 +66,12 @@ module Syntax =
 
     let rec groupUnary (nodes: SyntaxNode list) (accum: SyntaxNode list) =
         match nodes with
-        | OperNode(o)::EvalNode(r)::tail ->
+        | OperNode(o)::EvalNode(r)::tail when accum = [] ->
             accum @ [UnaryExpression(o, r)]
+            |> groupUnary tail
+        | OperNode(lop)::OperNode(un)::EvalNode(r)::tail ->
+            let lopNode = Operator lop |> TokenWrapper
+            accum @ [lopNode] @ [UnaryExpression(un, r)]
             |> groupUnary tail
         | n::tail -> accum @ [n] |> groupUnary tail
         | [] -> accum
