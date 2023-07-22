@@ -55,7 +55,7 @@ let toksToString_Test_General () =
     |> should equal "123.234 * ( - .456 ) ^ 2"
 
 [<Test>]
-[<TestCase([|"-";"100";"*";"-";"100"|], "- '100' * - '100'")>]
+[<TestCase([|"-";"100";"*";"-";"100"|], "- 100 * - 100")>]
 let parseLiterals_Test (tokens: string[], expr: string) =
     tokens |> Array.toList |> List.map makeToken
     |> syntaxLiterals
@@ -121,7 +121,7 @@ let groupBinary_Test_AroundUnary () =
             UnaryExpression("-", LiteralValue("100")); ]
     groupBinary body
     |> nodeToString
-    |> should equal "((-'100')*(-'100'))"
+    |> should equal "((-100)*(-100))"
 
 [<Test>]
 let groupBinary_Test_WithinUnary () =
@@ -137,13 +137,13 @@ let groupBinary_Test_WithinUnary () =
         ]
     groupBinary body
     |> nodeToString
-    |> should equal "((-('3'+'4'))*'100')"
+    |> should equal "((-(3+4))*100)"
 
 [<Test>]
-[<TestCase([|"3";"+";"4";"+";"2";"+";"1"|], "((('3'+'4')+'2')+'1')")>]
-[<TestCase([|"(";"3";"+";"4";")";"+";"(";"2";"+";"1";")"|], "(('3'+'4')+('2'+'1'))")>]
-[<TestCase([|"-";"100";"*";"-";"100"|], "((-'100')*(-'100'))")>]
-[<TestCase([|"-";"(";"3";"+";"4";")";"*";"100"|], "((-('3'+'4'))*'100')")>]
+[<TestCase([|"3";"+";"4";"+";"2";"+";"1"|], "(((3+4)+2)+1)")>]
+[<TestCase([|"(";"3";"+";"4";")";"+";"(";"2";"+";"1";")"|], "((3+4)+(2+1))")>]
+[<TestCase([|"-";"100";"*";"-";"100"|], "((-100)*(-100))")>]
+[<TestCase([|"-";"(";"3";"+";"4";")";"*";"100"|], "((-(3+4))*100)")>]
 let parseToTree_Test (tokens: string[], expr: string) =
     let body = tokens |> Array.toList |> List.map makeToken
     parseToTree body

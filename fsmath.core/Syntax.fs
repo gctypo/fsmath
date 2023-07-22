@@ -19,7 +19,7 @@ type SyntaxNode =
             "(" + l.ToString() + o + r.ToString() + ")"
         | UnaryExpression(o, r) ->
             "(" + o + r.ToString() + ")"
-        | LiteralValue v -> "'" + v + "'"
+        | LiteralValue v -> v
 
 
 module Syntax =
