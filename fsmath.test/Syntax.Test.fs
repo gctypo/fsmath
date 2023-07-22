@@ -25,6 +25,9 @@ let makeToken (shorthand: string) =
     | d when d[0] |> Tokenizer.isDigit -> makeNumber d
     | _ -> raise <| FormatException($"Invalid token: {shorthand}")
 
+let arrayToWrappedTokens (tokens: string[]) =
+    tokens |> Array.toList |> List.map (makeToken >> TokenWrapper)
+
 let private TEST_TOKENS =
     [ Number("123","234");
         Operator("*");
@@ -55,7 +58,7 @@ let toksToString_Test_General () =
 [<TestCase([|"("; "-"; "1.22"; ")"; "^"; "2"|], "((- 1.22) ^ 2)")>]
 [<TestCase([|"(";")";"*";"(";"(";")";")"|], "(() * (()))")>]
 let syntaxParen_Test (tokens: string[], expBody: string) =
-    tokens |> Array.toList |> List.map makeToken
+    tokens |> arrayToWrappedTokens
     |> syntaxParen
     |> nodeToString |> should equal expBody
 
@@ -64,7 +67,7 @@ let syntaxParen_Test (tokens: string[], expBody: string) =
 [<TestCase([|"-";"(";"-";"(";"1.22"|], "1.22")>]
 [<TestCase([|"(";"1.22";")";")"|], "(1.22)")>]
 let syntaxParen_Test_Fail (tokens: string[], expMsg: string) =
-    let inp = tokens |> Array.toList |> List.map makeToken
+    let inp = tokens |> arrayToWrappedTokens
     (fun () -> syntaxParen inp |> ignore)
     |> should (throwWithPartialMessage $": {expMsg}") typeof<FormatException>
 
@@ -73,7 +76,7 @@ let syntaxParen_Test_Fail (tokens: string[], expMsg: string) =
 [<TestCase([|"3";"-";"100"|], "(3 - 100)")>]
 [<TestCase([|"-";"100";"*";"-";"100"|], "([-100] * [-100])")>]
 let groupUnary_Test (tokens: string[], expStr: string) =
-    let inp = tokens |> Array.toList |> List.map (makeToken >> TokenWrapper)
+    let inp = tokens |> arrayToWrappedTokens
     groupUnary inp []
     |> UnparsedGroup |> nodeToString
     |> should equal expStr
@@ -83,8 +86,7 @@ let groupUnary_Test (tokens: string[], expStr: string) =
 [<TestCase([|"100";"*";"-";"(";"3";"-";"100";")"|], "(100 * [-(3 - 100)])")>]
 [<TestCase([|"-";"100";"*";"(";"3";"*";"-";"100";")"|], "([-100] * (3 * [-100]))")>]
 let groupUnary_Test_Paren (tokens: string[], expStr: string) =
-    let inp = tokens |> Array.toList |> List.map makeToken
-    let par = syntaxParen inp
+    let par = tokens |> arrayToWrappedTokens |> syntaxParen
     let body = match par with | UnparsedGroup(l) -> l | a -> [a]
     groupUnary body []
     |> UnparsedGroup |> nodeToString

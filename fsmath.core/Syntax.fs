@@ -28,27 +28,34 @@ module Syntax =
 
     //TODO: parse literals
 
-    let rec groupParen (tokens: TokenType list) (depth: int) (parenBody: SyntaxNode list) =
+    let (|ParenCloseNode|ParenOpenNode|OtherByParen|) (node: SyntaxNode) =
+        match node with
+        | TokenWrapper tok ->
+            match tok with
+            | ParenOpen -> ParenOpenNode
+            | ParenClose -> ParenCloseNode
+            | _ -> OtherByParen node
+        | _ -> OtherByParen node
+
+    let rec groupParen (tokens: SyntaxNode list) (depth: int) (parenBody: SyntaxNode list) =
         match tokens with
-        | ParenClose::tail ->
+        | ParenCloseNode::tail ->
             if depth = 0 then
                 let err = parenBody |> List.map nodeToString |> String.concat " "
                 raise <| FormatException $"Unexpected closing parenthesis after: {err}"
             else (tail, parenBody)
-        | ParenOpen::tail ->
+        | ParenOpenNode::tail ->
             let (rem, inner) = groupParen tail (depth + 1) []
             parenBody @ [UnparsedGroup(inner)]
             |> groupParen rem depth
-        | tok::tail ->
-            parenBody @ [TokenWrapper(tok)]
-            |> groupParen tail depth
+        | OtherByParen(node)::tail -> parenBody @ [node] |> groupParen tail depth
         | [] ->
             if depth = 0 then ([], parenBody)
             else
                 let err = parenBody |> List.map nodeToString |> String.concat " "
                 raise <| FormatException $"Unclosed parenthesis around: {err}"
 
-    let syntaxParen (tokens: TokenType list) =
+    let syntaxParen (tokens: SyntaxNode list) =
         let (rem, body) = groupParen tokens 0 []
         if rem = [] then UnparsedGroup body
         else
