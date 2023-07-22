@@ -1,7 +1,6 @@
 namespace fsmath.core
 
 open System
-open System.Linq.Expressions
 
 type SyntaxNode =
     | UnparsedGroup of group: SyntaxNode list
@@ -14,12 +13,12 @@ type SyntaxNode =
         match this with
         | TokenWrapper n -> n |> Tokenizer.tokToString
         | UnparsedGroup l ->
-            "(" + (l |> List.map (fun n -> n.ToString())
-                |> String.concat " ") + ")"
+            "{" + (l |> List.map (fun n -> n.ToString())
+                |> String.concat " ") + "}"
         | BinaryExpression(l, o, r) ->
-            "[" + l.ToString() + o + r.ToString() + "]"
+            "(" + l.ToString() + o + r.ToString() + ")"
         | UnaryExpression(o, r) ->
-            "[" + o + r.ToString() + "]"
+            "(" + o + r.ToString() + ")"
         | LiteralValue v -> "'" + v + "'"
 
 
@@ -29,16 +28,15 @@ module Syntax =
         tokens |> List.map Tokenizer.tokToString
         |> String.concat " "
 
-    let rec nodeToString (node: SyntaxNode) =
+    let nodeToString (node: SyntaxNode) = node.ToString()
+
+    let nodesToString (nodes: SyntaxNode list) =
+        nodes |> List.map nodeToString |> String.concat " "
+
+    let unpackNode (node: SyntaxNode) =
         match node with
-        | UnparsedGroup n ->
-            "(" + (n |> List.map nodeToString |> String.concat " ") + ")"
-        | TokenWrapper n -> n |> Tokenizer.tokToString
-        | BinaryExpression(l, o, r) ->
-            "[" + (nodeToString l) + o + (nodeToString r) + "]"
-        | UnaryExpression(o, r) ->
-            "[" + o + (nodeToString r) + "]"
-        | LiteralValue v -> "'" + v + "'"
+        | UnparsedGroup grp -> grp
+        | a -> [a]
 
     let (|IsLiteral|NotLiteral|) (node: SyntaxNode) =
         match node with

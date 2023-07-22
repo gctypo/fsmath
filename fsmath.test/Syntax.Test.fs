@@ -64,52 +64,51 @@ let parseLiterals_Test (tokens: string[], expBody: string) =
     |> should equal expBody
 
 [<Test>]
-[<TestCase([|"("; "-"; "1.22"; ")"; "^"; "2"|], "((- 1.22) ^ 2)")>]
-[<TestCase([|"(";")";"*";"(";"(";")";")"|], "(() * (()))")>]
+[<TestCase([|"("; "-"; "1.22"; ")"; "^"; "2"|], "{- 1.22} ^ 2")>]
+[<TestCase([|"(";")";"*";"(";"(";")";")"|], "{} * {{}}")>]
 let syntaxParen_Test (tokens: string[], expBody: string) =
     tokens |> arrayToWrappedTokens
     |> syntaxParen
-    |> nodeToString |> should equal expBody
+    |> unpackNode |> nodesToString
+    |> should equal expBody
 
 [<Test>]
 [<TestCase([|"(";"1.22"|], "1.22")>]
 [<TestCase([|"-";"(";"-";"(";"1.22"|], "1.22")>]
-[<TestCase([|"(";"1.22";")";")"|], "(1.22)")>]
+[<TestCase([|"(";"1.22";")";")"|], "{1.22}")>]
 let syntaxParen_Test_Fail (tokens: string[], expMsg: string) =
     let inp = tokens |> arrayToWrappedTokens
     (fun () -> syntaxParen inp |> ignore)
     |> should (throwWithPartialMessage $": {expMsg}") typeof<FormatException>
 
 [<Test>]
-[<TestCase([|"-";"100"|], "([-100])")>]
-[<TestCase([|"3";"-";"100"|], "(3 - 100)")>]
-[<TestCase([|"-";"100";"*";"-";"100"|], "([-100] * [-100])")>]
+[<TestCase([|"-";"100"|], "(-100)")>]
+[<TestCase([|"3";"-";"100"|], "3 - 100")>]
+[<TestCase([|"-";"100";"*";"-";"100"|], "(-100) * (-100)")>]
 let groupUnary_Test (tokens: string[], expStr: string) =
     let inp = tokens |> arrayToWrappedTokens
     groupUnary inp []
-    |> UnparsedGroup |> nodeToString
+    |> nodesToString
     |> should equal expStr
 
 [<Test>]
-[<TestCase([|"-";"100";"*";"(";"3";"-";"100";")"|], "([-100] * (3 - 100))")>]
-[<TestCase([|"100";"*";"-";"(";"3";"-";"100";")"|], "(100 * [-(3 - 100)])")>]
-[<TestCase([|"-";"100";"*";"(";"3";"*";"-";"100";")"|], "([-100] * (3 * [-100]))")>]
-[<TestCase([|"-";"(";"3";"+";"4";")"|], "([-(3 + 4)])")>]
-[<TestCase([|"3";"*";"(";"-";"100";")"|], "(3 * ([-100]))")>]
+[<TestCase([|"-";"100";"*";"(";"3";"-";"100";")"|], "(-100) * {3 - 100}")>]
+[<TestCase([|"100";"*";"-";"(";"3";"-";"100";")"|], "100 * (-{3 - 100})")>]
+[<TestCase([|"-";"100";"*";"(";"3";"*";"-";"100";")"|], "(-100) * {3 * (-100)}")>]
+[<TestCase([|"-";"(";"3";"+";"4";")"|], "(-{3 + 4})")>]
+[<TestCase([|"3";"*";"(";"-";"100";")"|], "3 * {(-100)}")>]
 let groupUnary_Test_Paren (tokens: string[], expStr: string) =
-    let par = tokens |> arrayToWrappedTokens |> syntaxParen
-    let body = match par with | UnparsedGroup(l) -> l | a -> [a]
+    let body = tokens |> arrayToWrappedTokens |> syntaxParen |> unpackNode
     groupUnary body []
-    |> UnparsedGroup |> nodeToString
+    |> nodesToString
     |> should equal expStr
 
 [<Test>]
-[<TestCase([|"3";"+";"2"|], "[3+2]")>]
-[<TestCase([|"3";"+";"4";"+";"2";"+";"1"|], "[[[3+4]+2]+1]")>]
-[<TestCase([|"(";"3";"+";"4";")";"+";"(";"2";"+";"1";")"|], "[[3+4]+[2+1]]")>]
+[<TestCase([|"3";"+";"2"|], "(3+2)")>]
+[<TestCase([|"3";"+";"4";"+";"2";"+";"1"|], "(((3+4)+2)+1)")>]
+[<TestCase([|"(";"3";"+";"4";")";"+";"(";"2";"+";"1";")"|], "((3+4)+(2+1))")>]
 let groupBinary_Test (tokens: string[], expStr: string) =
-    let par = tokens |> arrayToWrappedTokens |> syntaxParen
-    let body = match par with | UnparsedGroup l -> l | a -> [a]
+    let body = tokens |> arrayToWrappedTokens |> syntaxParen |> unpackNode
     groupBinary body
     |> nodeToString
     |> should equal expStr
@@ -123,7 +122,7 @@ let groupBinary_Test_AroundUnary () =
             UnaryExpression("-", LiteralValue("100")); ]
     groupBinary body
     |> nodeToString
-    |> should equal "[[-'100']*[-'100']]"
+    |> should equal "((-'100')*(-'100'))"
 
 [<Test>]
 let groupBinary_Test_WithinUnary () =
@@ -139,4 +138,4 @@ let groupBinary_Test_WithinUnary () =
         ]
     groupBinary body
     |> nodeToString
-    |> should equal "[[-['3'+'4']]*'100']"
+    |> should equal "((-('3'+'4'))*'100')"
