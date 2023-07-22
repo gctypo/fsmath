@@ -26,6 +26,8 @@ module Syntax =
         | UnaryExpression(o, r) ->
             "[" + o + (nodeToString r) + "]"
 
+    //TODO: parse literals
+
     let rec groupParen (tokens: TokenType list) (depth: int) (parenBody: SyntaxNode list) =
         match tokens with
         | ParenClose::tail ->
@@ -73,5 +75,8 @@ module Syntax =
             let lopNode = Operator lop |> TokenWrapper
             accum @ [lopNode] @ [UnaryExpression(un, r)]
             |> groupUnary tail
+        | UnparsedGroup(inner)::tail ->
+            let parBody = groupUnary inner [] |> UnparsedGroup
+            accum @ [parBody] |> groupUnary tail
         | n::tail -> accum @ [n] |> groupUnary tail
         | [] -> accum

@@ -81,6 +81,7 @@ let groupUnary_Test (tokens: string[], expStr: string) =
 [<Test>]
 [<TestCase([|"-";"100";"*";"(";"3";"-";"100";")"|], "([-100] * (3 - 100))")>]
 [<TestCase([|"100";"*";"-";"(";"3";"-";"100";")"|], "(100 * [-(3 - 100)])")>]
+[<TestCase([|"-";"100";"*";"(";"3";"*";"-";"100";")"|], "([-100] * (3 * [-100]))")>]
 let groupUnary_Test_Paren (tokens: string[], expStr: string) =
     let inp = tokens |> Array.toList |> List.map makeToken
     let par = syntaxParen inp
