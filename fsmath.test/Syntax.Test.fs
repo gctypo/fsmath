@@ -55,6 +55,14 @@ let toksToString_Test_General () =
     |> should equal "123.234 * ( - .456 ) ^ 2"
 
 [<Test>]
+[<TestCase([|"-";"100";"*";"-";"100"|], "- '100' * - '100'")>]
+let parseLiterals_Test (tokens: string[], expBody: string) =
+    tokens |> Array.toList |> List.map makeToken
+    |> syntaxLiterals
+    |> List.map nodeToString |> String.concat " "
+    |> should equal expBody
+
+[<Test>]
 [<TestCase([|"("; "-"; "1.22"; ")"; "^"; "2"|], "((- 1.22) ^ 2)")>]
 [<TestCase([|"(";")";"*";"(";"(";")";")"|], "(() * (()))")>]
 let syntaxParen_Test (tokens: string[], expBody: string) =

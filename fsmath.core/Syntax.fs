@@ -8,6 +8,19 @@ type SyntaxNode =
     | TokenWrapper of token: TokenType
     | BinaryExpression of lhs: SyntaxNode * oper: string * rhs: SyntaxNode
     | UnaryExpression of oper: string * rhs: SyntaxNode
+    | LiteralValue of value: string
+
+    override this.ToString() =
+        match this with
+        | TokenWrapper n -> n |> Tokenizer.tokToString
+        | UnparsedGroup l ->
+            "(" + (l |> List.map (fun n -> n.ToString())
+                |> String.concat " ") + ")"
+        | BinaryExpression(l, o, r) ->
+            "[" + l.ToString() + o + r.ToString() + "]"
+        | UnaryExpression(o, r) ->
+            "[" + o + r.ToString() + "]"
+        | LiteralValue v -> "'" + v + "'"
 
 
 module Syntax =
@@ -25,8 +38,27 @@ module Syntax =
             "[" + (nodeToString l) + o + (nodeToString r) + "]"
         | UnaryExpression(o, r) ->
             "[" + o + (nodeToString r) + "]"
+        | LiteralValue v -> "'" + v + "'"
 
-    //TODO: parse literals
+    let (|IsLiteral|NotLiteral|) (node: SyntaxNode) =
+        match node with
+        | TokenWrapper tok ->
+            match tok with
+            | Number(w, f) -> IsLiteral(w, f)
+            | _ -> NotLiteral node
+        | _ -> NotLiteral node
+
+    let rec parseLiterals (nodes: SyntaxNode list) (accum: SyntaxNode list) =
+        match nodes with
+        | IsLiteral(w,f)::tail ->
+            let litStr = if f = "" then w else $"{w}.{f}"
+            accum @ [LiteralValue(litStr)] |> parseLiterals tail
+        | NotLiteral(n)::tail -> accum @ [n] |> parseLiterals tail
+        | [] -> accum
+
+    let syntaxLiterals (tokens: TokenType list) =
+        let inp = tokens |> List.map TokenWrapper
+        parseLiterals inp []
 
     let (|ParenCloseNode|ParenOpenNode|OtherByParen|) (node: SyntaxNode) =
         match node with
@@ -72,6 +104,7 @@ module Syntax =
         | UnparsedGroup l -> EvalNode node
         | BinaryExpression _ -> EvalNode node
         | UnaryExpression _ -> EvalNode node
+        | LiteralValue _ -> EvalNode node
 
     let rec groupUnary (nodes: SyntaxNode list) (accum: SyntaxNode list) =
         match nodes with
