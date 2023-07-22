@@ -120,3 +120,14 @@ module Syntax =
             accum @ [parBody] |> groupUnary tail
         | n::tail -> accum @ [n] |> groupUnary tail
         | [] -> accum
+
+    let rec groupBinary (nodes: SyntaxNode list) =
+        match nodes with
+        | EvalNode(ln)::OperNode(o)::EvalNode(rn)::tail ->
+            let lhs = match ln with | UnparsedGroup grp -> groupBinary grp | a -> a
+            let rhs = match rn with | UnparsedGroup grp -> groupBinary grp | a -> a
+            BinaryExpression(lhs, o, rhs)::tail
+            |> groupBinary
+        | [n] -> n
+        | _ -> raise <| FormatException $"Cannot group binary operators without nodes"
+

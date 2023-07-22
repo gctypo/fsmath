@@ -99,3 +99,14 @@ let groupUnary_Test_Paren (tokens: string[], expStr: string) =
     groupUnary body []
     |> UnparsedGroup |> nodeToString
     |> should equal expStr
+
+[<Test>]
+[<TestCase([|"3";"+";"2"|], "[3+2]")>]
+[<TestCase([|"3";"+";"4";"+";"2";"+";"1"|], "[[[3+4]+2]+1]")>]
+[<TestCase([|"(";"3";"+";"4";")";"+";"(";"2";"+";"1";")"|], "[[3+4]+[2+1]]")>]
+let groupBinary_Test (tokens: string[], expStr: string) =
+    let par = tokens |> arrayToWrappedTokens |> syntaxParen
+    let body = match par with | UnparsedGroup l -> l | a -> [a]
+    groupBinary body
+    |> nodeToString
+    |> should equal expStr
