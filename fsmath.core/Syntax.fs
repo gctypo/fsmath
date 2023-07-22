@@ -67,8 +67,8 @@ module Syntax =
             | _ -> OtherByParen node
         | _ -> OtherByParen node
 
-    let rec groupParen (tokens: SyntaxNode list) (depth: int) (parenBody: SyntaxNode list) =
-        match tokens with
+    let rec groupParen (unparsed: SyntaxNode list) (depth: int) (parenBody: SyntaxNode list) =
+        match unparsed with
         | ParenCloseNode::tail ->
             if depth = 0 then
                 let err = parenBody |> List.map nodeToString |> String.concat " "
@@ -85,8 +85,8 @@ module Syntax =
                 let err = parenBody |> List.map nodeToString |> String.concat " "
                 raise <| FormatException $"Unclosed parenthesis around: {err}"
 
-    let syntaxParen (tokens: SyntaxNode list) =
-        let (rem, body) = groupParen tokens 0 []
+    let syntaxParen (unparsed: SyntaxNode list) =
+        let (rem, body) = groupParen unparsed 0 []
         if rem = [] then UnparsedGroup body
         else
             let err = body |> List.map nodeToString
@@ -104,22 +104,25 @@ module Syntax =
         | UnaryExpression _ -> EvalNode node
         | LiteralValue _ -> EvalNode node
 
-    let rec groupUnary (nodes: SyntaxNode list) (accum: SyntaxNode list) =
-        match nodes with
-        | OperNode(o)::EvalNode(r)::tail when accum = [] ->
-            accum @ [UnaryExpression(o, r)]
+    let rec groupUnary (unparsed: SyntaxNode list) (parsed: SyntaxNode list) =
+        match unparsed with
+        // Ex: {- 100} -> {(-100)}
+        | OperNode(op)::EvalNode(rhs)::tail when parsed = [] ->
+            parsed @ [UnaryExpression(op, rhs)]
             |> groupUnary tail
-        | OperNode(lop)::OperNode(un)::EvalNode(r)::tail ->
-            let lopNode = Operator lop |> TokenWrapper
-            accum @ [lopNode] @ [UnaryExpression(un, r)]
+        // Ex: {* - 100} -> {* (-100)}
+        | OperNode(seekHead)::OperNode(op)::EvalNode(rhs)::tail ->
+            let rewrappedSeek = Operator seekHead |> TokenWrapper
+            parsed @ [rewrappedSeek] @ [UnaryExpression(op, rhs)]
             |> groupUnary tail
+        // Ex: {{- 100} * - 100} -> {{(-100)} * (-100)}
         | UnparsedGroup(inner)::tail ->
             let parBody = groupUnary inner [] |> UnparsedGroup
-            accum @ [parBody] |> groupUnary tail
-        | n::tail -> accum @ [n] |> groupUnary tail
-        | [] -> accum
+            parsed @ [parBody] |> groupUnary tail
+        | n::tail -> parsed @ [n] |> groupUnary tail
+        | [] -> parsed
 
-    let rec groupBinary (nodes: SyntaxNode list) =
+    let rec groupBinary (unparsed: SyntaxNode list) =
         // Repeat groupBinary inside all child nodes
         let rec descend (node: SyntaxNode) =
             match node with
@@ -130,9 +133,9 @@ module Syntax =
                 (descend l, o, descend r) |> BinaryExpression
             | LiteralValue _ | TokenWrapper _ -> node
 
-        match nodes with
-        | EvalNode(ln)::OperNode(o)::EvalNode(rn)::tail ->
-            BinaryExpression(descend ln, o, descend rn)::tail
+        match unparsed with
+        | EvalNode(lhs)::OperNode(op)::EvalNode(rhs)::tail ->
+            BinaryExpression(descend lhs, op, descend rhs)::tail
             |> groupBinary
         | [n] -> descend n
         | _ -> raise <| FormatException $"Cannot group binary operators without nodes"
