@@ -38,6 +38,11 @@ module Syntax =
         | UnparsedGroup grp -> grp
         | a -> [a]
 
+    let packNodes (nodes: SyntaxNode list) =
+        match nodes with
+        | [n] -> n
+        | _ -> UnparsedGroup nodes
+
     let (|IsLiteral|NotLiteral|) (node: SyntaxNode) =
         match node with
         | TokenWrapper tok ->
@@ -124,27 +129,45 @@ module Syntax =
 
     let syntaxUnary (unparsed: SyntaxNode list) = groupUnary unparsed []
 
-    let rec groupBinary (unparsed: SyntaxNode list) =
-        // Repeat groupBinary inside all child nodes
+    // Here be dragons
+    let rec syntaxBinaryOrd (ops: string[]) (unparsed: SyntaxNode list) =
+        // Repeat syntaxBinaryOrd recursively on all child nodes
         let rec descend (node: SyntaxNode) =
             match node with
-            | UnparsedGroup grp -> grp |> groupBinary
-            | UnaryExpression(o, l) ->
-                (o, descend l) |> UnaryExpression
+            | UnparsedGroup grp -> grp |> syntaxBinaryOrd ops
+            | UnaryExpression(o, r) ->
+                (o, descend r) |> UnaryExpression
             | BinaryExpression(l, o, r) ->
                 (descend l, o, descend r) |> BinaryExpression
             | LiteralValue _ | TokenWrapper _ -> node
+        // binds binop pairs while filtering nodes
+        let rec groupBinaryOrd (ops: string[]) (unparsed: SyntaxNode list) (parsed: SyntaxNode list) =
+            match unparsed with
+            // {}3 * 4 * 2 -> {}(3*4) * 2   Does NOT add new expression to parsed list
+            | EvalNode(lhs)::OperNode(op)::EvalNode(rhs)::tail when ops |> Array.contains op ->
+                let newTail = BinaryExpression(descend lhs, op, descend rhs)::tail
+                groupBinaryOrd ops newTail parsed
+            // {}3 + 4 * 2 -> {3 + 4} * 2
+            | n::tail ->
+                parsed @ [descend n]
+                |> groupBinaryOrd ops tail
+            // {({3 + 4}*2)} -> done
+            | [] -> parsed
+        groupBinaryOrd ops unparsed [] |> packNodes
 
-        match unparsed with
-        | EvalNode(lhs)::OperNode(op)::EvalNode(rhs)::tail ->
-            BinaryExpression(descend lhs, op, descend rhs)::tail
-            |> groupBinary
-        | [n] -> descend n
-        | _ -> raise <| FormatException $"Cannot group binary operators without nodes"
+    let BIN_OPS_POW = [|"^"|]
+    let BIN_OPS_MULT = [|"*";"/"|]
+    let BIN_OPS_ADD = [|"+";"-"|]
+
+    let syntaxBinary (unparsed: SyntaxNode list) =
+        unparsed
+        |> syntaxBinaryOrd BIN_OPS_POW |> unpackNode
+        |> syntaxBinaryOrd BIN_OPS_MULT |> unpackNode
+        |> syntaxBinaryOrd BIN_OPS_ADD
 
     let parseToTree (tokens: TokenType list) =
         tokens
         |> syntaxLiterals
         |> syntaxParen
         |> syntaxUnary
-        |> groupBinary
+        |> syntaxBinary

@@ -103,28 +103,37 @@ let groupUnary_Test_Paren (tokens: string[], expr: string) =
     |> should equal expr
 
 [<Test>]
+[<TestCase([|"3";"+";"2";"*";"4"|], "3 + (2*4)")>]
+[<TestCase([|"4";"*";"(";"3";"+";"2";"*";"4";")"|], "(4*{3 + (2*4)})")>]
+let groupBinaryOrd_Test (tokens: string[], expr: string) =
+    let body = tokens |> arrayToWrappedTokens |> syntaxParen
+    syntaxBinaryOrd [|"*"|] body
+    |> unpackNode |> nodesToString
+    |> should equal expr
+
+[<Test>]
 [<TestCase([|"3";"+";"2"|], "(3+2)")>]
 [<TestCase([|"3";"+";"4";"+";"2";"+";"1"|], "(((3+4)+2)+1)")>]
 [<TestCase([|"(";"3";"+";"4";")";"+";"(";"2";"+";"1";")"|], "((3+4)+(2+1))")>]
-let groupBinary_Test (tokens: string[], expr: string) =
+[<TestCase([|"3";"+";"4";"*";"2";"+";"1"|], "((3+(4*2))+1)")>]
+let syntaxBinary_Test (tokens: string[], expr: string) =
     let body = tokens |> arrayToWrappedTokens |> syntaxParen
-    groupBinary body
+    syntaxBinary body
     |> nodeToString
     |> should equal expr
 
-// This is about to get complicated
 [<Test>]
-let groupBinary_Test_AroundUnary () =
+let syntaxBinary_Test_AroundUnary () =
     let body =
         [ UnparsedGroup([UnaryExpression("-", LiteralValue("100"))]);
             TokenWrapper(Operator("*"));
             UnaryExpression("-", LiteralValue("100")); ]
-    groupBinary body
+    syntaxBinary body
     |> nodeToString
     |> should equal "((-100)*(-100))"
 
 [<Test>]
-let groupBinary_Test_WithinUnary () =
+let syntaxBinary_Test_WithinUnary () =
     let body =
         [ UnaryExpression("-",
             UnparsedGroup([
@@ -135,7 +144,7 @@ let groupBinary_Test_WithinUnary () =
             TokenWrapper(Operator("*"));
             LiteralValue("100")
         ]
-    groupBinary body
+    syntaxBinary body
     |> nodeToString
     |> should equal "((-(3+4))*100)"
 
