@@ -122,12 +122,20 @@ module Syntax =
         | [] -> accum
 
     let rec groupBinary (nodes: SyntaxNode list) =
+        // Repeat groupBinary inside all child nodes
+        let rec descend (node: SyntaxNode) =
+            match node with
+            | UnparsedGroup grp -> grp |> groupBinary
+            | UnaryExpression(o, l) ->
+                (o, descend l) |> UnaryExpression
+            | BinaryExpression(l, o, r) ->
+                (descend l, o, descend r) |> BinaryExpression
+            | LiteralValue _ | TokenWrapper _ -> node
+
         match nodes with
         | EvalNode(ln)::OperNode(o)::EvalNode(rn)::tail ->
-            let lhs = match ln with | UnparsedGroup grp -> groupBinary grp | a -> a
-            let rhs = match rn with | UnparsedGroup grp -> groupBinary grp | a -> a
-            BinaryExpression(lhs, o, rhs)::tail
+            BinaryExpression(descend ln, o, descend rn)::tail
             |> groupBinary
-        | [n] -> n
+        | [n] -> descend n
         | _ -> raise <| FormatException $"Cannot group binary operators without nodes"
 

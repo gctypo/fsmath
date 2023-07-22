@@ -1,6 +1,7 @@
 module fsmath.test.Syntax_Test
 
 open System
+open System.Linq.Expressions
 open NUnit.Framework
 open FsUnit
 
@@ -93,6 +94,8 @@ let groupUnary_Test (tokens: string[], expStr: string) =
 [<TestCase([|"-";"100";"*";"(";"3";"-";"100";")"|], "([-100] * (3 - 100))")>]
 [<TestCase([|"100";"*";"-";"(";"3";"-";"100";")"|], "(100 * [-(3 - 100)])")>]
 [<TestCase([|"-";"100";"*";"(";"3";"*";"-";"100";")"|], "([-100] * (3 * [-100]))")>]
+[<TestCase([|"-";"(";"3";"+";"4";")"|], "([-(3 + 4)])")>]
+[<TestCase([|"3";"*";"(";"-";"100";")"|], "(3 * ([-100]))")>]
 let groupUnary_Test_Paren (tokens: string[], expStr: string) =
     let par = tokens |> arrayToWrappedTokens |> syntaxParen
     let body = match par with | UnparsedGroup(l) -> l | a -> [a]
@@ -110,3 +113,30 @@ let groupBinary_Test (tokens: string[], expStr: string) =
     groupBinary body
     |> nodeToString
     |> should equal expStr
+
+// This is about to get complicated
+[<Test>]
+let groupBinary_Test_AroundUnary () =
+    let body =
+        [ UnparsedGroup([UnaryExpression("-", LiteralValue("100"))]);
+            TokenWrapper(Operator("*"));
+            UnaryExpression("-", LiteralValue("100")); ]
+    groupBinary body
+    |> nodeToString
+    |> should equal "[[-'100']*[-'100']]"
+
+[<Test>]
+let groupBinary_Test_WithinUnary () =
+    let body =
+        [ UnaryExpression("-",
+            UnparsedGroup([
+                LiteralValue("3");
+                TokenWrapper(Operator("+"));
+                LiteralValue("4");
+            ]));
+            TokenWrapper(Operator("*"));
+            LiteralValue("100")
+        ]
+    groupBinary body
+    |> nodeToString
+    |> should equal "[[-['3'+'4']]*'100']"
