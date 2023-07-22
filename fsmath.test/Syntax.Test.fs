@@ -1,7 +1,6 @@
 module fsmath.test.Syntax_Test
 
 open System
-open System.Linq.Expressions
 open NUnit.Framework
 open FsUnit
 
@@ -57,11 +56,11 @@ let toksToString_Test_General () =
 
 [<Test>]
 [<TestCase([|"-";"100";"*";"-";"100"|], "- '100' * - '100'")>]
-let parseLiterals_Test (tokens: string[], expBody: string) =
+let parseLiterals_Test (tokens: string[], expr: string) =
     tokens |> Array.toList |> List.map makeToken
     |> syntaxLiterals
     |> List.map nodeToString |> String.concat " "
-    |> should equal expBody
+    |> should equal expr
 
 [<Test>]
 [<TestCase([|"("; "-"; "1.22"; ")"; "^"; "2"|], "{- 1.22} ^ 2")>]
@@ -69,7 +68,7 @@ let parseLiterals_Test (tokens: string[], expBody: string) =
 let syntaxParen_Test (tokens: string[], expBody: string) =
     tokens |> arrayToWrappedTokens
     |> syntaxParen
-    |> unpackNode |> nodesToString
+    |> nodesToString
     |> should equal expBody
 
 [<Test>]
@@ -85,11 +84,11 @@ let syntaxParen_Test_Fail (tokens: string[], expMsg: string) =
 [<TestCase([|"-";"100"|], "(-100)")>]
 [<TestCase([|"3";"-";"100"|], "3 - 100")>]
 [<TestCase([|"-";"100";"*";"-";"100"|], "(-100) * (-100)")>]
-let groupUnary_Test (tokens: string[], expStr: string) =
+let groupUnary_Test (tokens: string[], expr: string) =
     let inp = tokens |> arrayToWrappedTokens
     groupUnary inp []
     |> nodesToString
-    |> should equal expStr
+    |> should equal expr
 
 [<Test>]
 [<TestCase([|"-";"100";"*";"(";"3";"-";"100";")"|], "(-100) * {3 - 100}")>]
@@ -97,21 +96,21 @@ let groupUnary_Test (tokens: string[], expStr: string) =
 [<TestCase([|"-";"100";"*";"(";"3";"*";"-";"100";")"|], "(-100) * {3 * (-100)}")>]
 [<TestCase([|"-";"(";"3";"+";"4";")"|], "(-{3 + 4})")>]
 [<TestCase([|"3";"*";"(";"-";"100";")"|], "3 * {(-100)}")>]
-let groupUnary_Test_Paren (tokens: string[], expStr: string) =
-    let body = tokens |> arrayToWrappedTokens |> syntaxParen |> unpackNode
+let groupUnary_Test_Paren (tokens: string[], expr: string) =
+    let body = tokens |> arrayToWrappedTokens |> syntaxParen
     groupUnary body []
     |> nodesToString
-    |> should equal expStr
+    |> should equal expr
 
 [<Test>]
 [<TestCase([|"3";"+";"2"|], "(3+2)")>]
 [<TestCase([|"3";"+";"4";"+";"2";"+";"1"|], "(((3+4)+2)+1)")>]
 [<TestCase([|"(";"3";"+";"4";")";"+";"(";"2";"+";"1";")"|], "((3+4)+(2+1))")>]
-let groupBinary_Test (tokens: string[], expStr: string) =
-    let body = tokens |> arrayToWrappedTokens |> syntaxParen |> unpackNode
+let groupBinary_Test (tokens: string[], expr: string) =
+    let body = tokens |> arrayToWrappedTokens |> syntaxParen
     groupBinary body
     |> nodeToString
-    |> should equal expStr
+    |> should equal expr
 
 // This is about to get complicated
 [<Test>]
@@ -139,3 +138,14 @@ let groupBinary_Test_WithinUnary () =
     groupBinary body
     |> nodeToString
     |> should equal "((-('3'+'4'))*'100')"
+
+[<Test>]
+[<TestCase([|"3";"+";"4";"+";"2";"+";"1"|], "((('3'+'4')+'2')+'1')")>]
+[<TestCase([|"(";"3";"+";"4";")";"+";"(";"2";"+";"1";")"|], "(('3'+'4')+('2'+'1'))")>]
+[<TestCase([|"-";"100";"*";"-";"100"|], "((-'100')*(-'100'))")>]
+[<TestCase([|"-";"(";"3";"+";"4";")";"*";"100"|], "((-('3'+'4'))*'100')")>]
+let parseToTree_Test (tokens: string[], expr: string) =
+    let body = tokens |> Array.toList |> List.map makeToken
+    parseToTree body
+    |> nodeToString
+    |> should equal expr

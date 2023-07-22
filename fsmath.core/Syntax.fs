@@ -87,7 +87,7 @@ module Syntax =
 
     let syntaxParen (unparsed: SyntaxNode list) =
         let (rem, body) = groupParen unparsed 0 []
-        if rem = [] then UnparsedGroup body
+        if rem = [] then body
         else
             let err = body |> List.map nodeToString
             raise <| FormatException $"Unexpected closing parenthesis after: {err}"
@@ -122,6 +122,8 @@ module Syntax =
         | n::tail -> parsed @ [n] |> groupUnary tail
         | [] -> parsed
 
+    let syntaxUnary (unparsed: SyntaxNode list) = groupUnary unparsed []
+
     let rec groupBinary (unparsed: SyntaxNode list) =
         // Repeat groupBinary inside all child nodes
         let rec descend (node: SyntaxNode) =
@@ -140,3 +142,9 @@ module Syntax =
         | [n] -> descend n
         | _ -> raise <| FormatException $"Cannot group binary operators without nodes"
 
+    let parseToTree (tokens: TokenType list) =
+        tokens
+        |> syntaxLiterals
+        |> syntaxParen
+        |> syntaxUnary
+        |> groupBinary
