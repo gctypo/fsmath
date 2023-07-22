@@ -67,3 +67,11 @@ let syntaxParen_Test_Fail (tokens: string[], expMsg: string) =
     let inp = tokens |> Array.toList |> List.map makeToken
     (fun () -> syntaxParen inp |> ignore)
     |> should (throwWithPartialMessage $": {expMsg}") typeof<FormatException>
+
+[<Test>]
+[<TestCase([|"-";"100";"*";"-";"100"|], "([-100] * [-100])")>]
+let groupUnary_Test (tokens: string[], expStr: string) =
+    let inp = tokens |> Array.toList |> List.map (makeToken >> TokenWrapper)
+    groupUnary inp []
+    |> UnparsedGroup |> nodeToString
+    |> should equal expStr
