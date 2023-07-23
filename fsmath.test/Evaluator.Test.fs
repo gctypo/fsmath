@@ -33,3 +33,15 @@ let evaluateBinary_Test (lhs: string, op: string, rhs: string, exp: decimal) =
     BinaryExpression(LiteralValue(lhs), op, LiteralValue(rhs))
     |> evaluateNode
     |> should equal exp
+
+[<Test>]
+let evaluateNode_Test_Nested () =
+    let expr =
+        BinaryExpression(
+            UnaryExpression("-",
+                BinaryExpression(LiteralValue("3"),
+                    "+", LiteralValue("4") )),
+            "*", LiteralValue("10"))
+    expr |> Syntax.nodeToString |> should equal "((-(3+4))*10)"
+    expr |> evaluateNode
+    |> should equal -70
