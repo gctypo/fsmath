@@ -82,6 +82,7 @@ let syntaxParen_Test_Fail (tokens: string[], expMsg: string) =
 
 [<Test>]
 [<TestCase([|"-";"100"|], "(-100)")>]
+[<TestCase([|"-";"-";"100"|], "(-(-100))")>]
 [<TestCase([|"+";"100"|], "(+100)")>]
 [<TestCase([|"3";"-";"100"|], "3 - 100")>]
 [<TestCase([|"-";"100";"*";"-";"100"|], "(-100) * (-100)")>]

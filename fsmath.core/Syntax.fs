@@ -117,6 +117,10 @@ module Syntax =
             let recursed = (unpackNode rhs, []) ||> groupUnary |> packNodes
             parsed @ [UnaryExpression(op, recursed)]
             |> groupUnary tail
+        // Ex: {- - 100} -> {(-(-100))}
+        | OperNode(leadOp)::OperNode(innerOp)::tail when parsed = [] ->
+            let inner = (TokenWrapper(Operator innerOp)::tail, []) ||> groupUnary |> packNodes
+            [UnaryExpression(leadOp, inner)]
         // Ex: {* - 100} -> {* (-100)}
         | OperNode(seekHead)::OperNode(op)::EvalNode(rhs)::tail ->
             let rewrappedSeek = Operator seekHead |> TokenWrapper

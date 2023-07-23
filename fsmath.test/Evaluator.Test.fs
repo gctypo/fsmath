@@ -52,6 +52,7 @@ let evaluateNode_Test_Nested () =
 [<TestCase("3+4", 7)>]
 [<TestCase("3 + 4", 7)>]
 [<TestCase("3 + (4)", 7)>]
+[<TestCase("- -3", 3)>]
 [<TestCase("3 x 4", 12)>]
 [<TestCase("-10 * -10", 100)>]
 [<TestCase("3 + 4 + 2 + 1", 10)>]
