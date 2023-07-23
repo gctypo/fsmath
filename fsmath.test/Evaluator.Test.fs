@@ -45,3 +45,17 @@ let evaluateNode_Test_Nested () =
     expr |> Syntax.nodeToString |> should equal "((-(3+4))*10)"
     expr |> evaluateNode
     |> should equal -70
+
+[<Test>]
+[<TestCase("3+4", 7)>]
+[<TestCase("3 + 4", 7)>]
+[<TestCase("3 + (4)", 7)>]
+[<TestCase("-10 * -10", 100)>]
+[<TestCase("3 + 4 + 2 + 1", 10)>]
+[<TestCase("3 * 4 + 2 * 1", 14)>]
+[<TestCase("3 + 4 * 2 + 1", 12)>]
+[<TestCase("3 * (4 + 2) * 1", 18)>]
+[<TestCase("-(3 + 4) * 100", -700)>]
+let evaluateString_Test (input: string, exp: decimal) =
+    evaluateString input
+    |> should equal exp

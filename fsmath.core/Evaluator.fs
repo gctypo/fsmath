@@ -12,3 +12,9 @@ let rec evaluateNode (node: SyntaxNode) =
         evaluateNode rhs
         |> OperatorTokens.getUnaryOper oper
     | _ -> invalidArg (nameof node) $"Cannot evaluate incomplete syntax: {node}"
+
+let evaluateString (input: string) =
+    input.ToCharArray() |> Array.toList
+    |> Tokenizer.tokenize
+    |> Syntax.parseToTree
+    |> evaluateNode
