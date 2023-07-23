@@ -13,8 +13,9 @@ type SyntaxNode =
         match this with
         | TokenWrapper n -> n |> Tokenizer.tokToString
         | UnparsedGroup l ->
-            "{" + (l |> List.map (fun n -> n.ToString())
-                |> String.concat " ") + "}"
+            l |> List.map (fun n -> n.ToString())
+            |> String.concat " "
+            |> sprintf "{%s}"
         | BinaryExpression(l, o, r) ->
             "(" + l.ToString() + o + r.ToString() + ")"
         | UnaryExpression(o, r) ->
