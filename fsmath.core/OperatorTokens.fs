@@ -3,7 +3,7 @@ module fsmath.core.OperatorTokens
 open System
 
 let Exponential = ["^"]
-let Multiplicative = ["*";"/"]
+let Multiplicative = ["*";"/";"x"]
 let Additive = ["+";"-"]
 
 let All = Exponential @ Multiplicative @ Additive
@@ -16,7 +16,7 @@ let getUnaryOper (oper: string) =
 let getBinaryOper (oper: string) =
     match oper with
     | "^" -> (fun l (r:decimal) -> (float l) ** (float r) |> decimal)
-    | "*" -> (fun l r -> l * r)
+    | "*" | "x" -> (fun l r -> l * r)
     | "/" -> (fun l r -> l / r)
     | "+" -> (fun l r -> l + r)
     | "-" -> (fun l r -> l - r)
