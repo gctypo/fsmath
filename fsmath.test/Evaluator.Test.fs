@@ -1,6 +1,5 @@
 module fsmath.test.Evaluator_Test
 
-open Microsoft.VisualStudio.TestPlatform.ObjectModel
 open NUnit.Framework
 open FsUnit
 
