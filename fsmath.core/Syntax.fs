@@ -145,7 +145,8 @@ module Syntax =
         let rec groupBinaryOrd (unparsed: SyntaxNode list) (parsed: SyntaxNode list) =
             match unparsed with
             // {}3 * 4 * 2 -> {}(3*4) * 2   Does NOT add new expression to parsed list
-            | EvalNode(lhs)::OperNode(op)::EvalNode(rhs)::tail when ops |> List.contains op ->
+            | EvalNode(lhs)::OperNode(op)::EvalNode(rhs)::tail
+                    when ops |> List.contains op ->
                 let newTail = BinaryExpression(descend lhs, op, descend rhs)::tail
                 groupBinaryOrd newTail parsed
             // {}3 + 4 * 2 -> {3 + 4} * 2
@@ -157,15 +158,11 @@ module Syntax =
 
         groupBinaryOrd unparsed [] |> packNodes
 
-    let BIN_OPS_POW = ["^"]
-    let BIN_OPS_MULT = ["*";"/"]
-    let BIN_OPS_ADD = ["+";"-"]
-
     let syntaxBinary (unparsed: SyntaxNode list) =
         unparsed
-        |> syntaxBinaryOrd BIN_OPS_POW |> unpackNode
-        |> syntaxBinaryOrd BIN_OPS_MULT |> unpackNode
-        |> syntaxBinaryOrd BIN_OPS_ADD
+        |> syntaxBinaryOrd OperatorTokens.Exponential |> unpackNode
+        |> syntaxBinaryOrd OperatorTokens.Multiplicative |> unpackNode
+        |> syntaxBinaryOrd OperatorTokens.Additive
 
     let parseToTree (tokens: TokenType list) =
         tokens

@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="OperatorTokens.fs" />
         <Compile Include="Tokenizer.fs" />
         <Compile Include="Syntax.fs" />
     </ItemGroup>

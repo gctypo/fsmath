@@ -58,8 +58,8 @@ module Tokenizer =
 
     let isOperator (op: char list) (c: char) =
         let str = (op @ [c]) |> lstToString
-        [| "+"; "-"; "*"; "/"; "^" |]
-        |> Array.exists (fun o -> o.StartsWith str)
+        OperatorTokens.All
+        |> List.exists (fun o -> o.StartsWith str)
 
     let rec parseOperator (feed: char list) (op: char list) =
         match feed with
