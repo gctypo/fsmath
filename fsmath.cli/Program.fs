@@ -25,6 +25,28 @@ Supported unary operators:
 
 Traditional order of operations supported. Use parentheses to force grouping.
     "
+let printHelp () =
+    helpInfo |> printfn "%s"
+    0
+
+let printVersionInfo () =
+    let ver = Assembly.GetExecutingAssembly().GetName().Version
+    (ver.Major, ver.Minor, ver.Build)
+    |||> printfn "fsmath version %i.%i.%i"
+    0
+
+let evalString (expr: string) =
+    try
+        let eval = expr |> Evaluator.evaluateString
+        eval.ToString() |> printfn "%s"
+        0
+    with
+    | :? FormatException as ex ->
+        ex.Message |> eprintfn "Parse error: %s"
+        2
+    | ex ->
+        ex.ToString() |> eprintfn "ERROR: %s"
+        1
 
 [<EntryPoint>]
 let main argv =
@@ -32,23 +54,6 @@ let main argv =
     | [] ->
         eprintfn "Usage: fsmath <expression>\n   or: fsmath --help"
         1
-    | "--version"::_ ->
-        let ver = Assembly.GetExecutingAssembly().GetName().Version
-        (ver.Major, ver.Minor, ver.Build)
-        |||> printfn "fsmath version %i.%i.%i"
-        0
-    | "--help"::_ ->
-        helpInfo |> printfn "%s"
-        0
-    | arr ->
-        try
-            let eval = arr |> String.concat " " |> Evaluator.evaluateString
-            eval.ToString() |> printfn "%s"
-            0
-        with
-        | :? FormatException as ex ->
-            ex.Message |> eprintfn "Parse error: %s"
-            2
-        | ex ->
-            ex.ToString() |> eprintfn "ERROR: %s"
-            1
+    | "--version"::_ -> printVersionInfo ()
+    | "--help"::_ -> printHelp ()
+    | arr -> arr |> String.concat " " |> evalString
