@@ -20,7 +20,7 @@ let makeToken (shorthand: string) =
     | "" -> raise <| FormatException("Empty token!")
     | "(" -> ParenOpen
     | ")" -> ParenClose
-    | a when a[0] |> Tokenizer.isOperator [] -> Operator(a)
+    | a when a[0] |> Tokenizer.isPartOfOperator [] -> Operator(a)
     | d when d[0] = '.' -> Number("", d.Substring(1))
     | d when d[0] |> Tokenizer.isDigit -> makeNumber d
     | _ -> raise <| FormatException($"Invalid token: {shorthand}")

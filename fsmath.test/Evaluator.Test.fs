@@ -18,6 +18,7 @@ let evaluateLiteral_Test (literal: string, exp: decimal) =
 [<Test>]
 [<TestCase("-","100", -100)>]
 [<TestCase("+","100", 100)>]
+[<TestCase("-/","100", 10)>]
 let evaluateUnary_Test (op: string, rhs: string, exp: decimal) =
     UnaryExpression(op, LiteralValue(rhs))
     |> evaluateNode
@@ -60,6 +61,7 @@ let evaluateNode_Test_Nested () =
 [<TestCase("-(3 + 4) * 100", -700)>]
 [<TestCase("-(-7 + 4) * 100", 300)>]
 [<TestCase("-(3 + -7) * 100", 400)>]
+[<TestCase("-/(3 ^ 2 + 4 ^ 2)", 5)>]
 let evaluateString_Test (input: string, exp: decimal) =
     evaluateString input
     |> should equal exp

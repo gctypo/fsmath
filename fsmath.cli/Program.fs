@@ -13,16 +13,17 @@ let helpInfo =
 Parses a mathematical expression. Result is printed to stdout.
 
 Supported binary operators:
-  + Addition
-  - Subtraction
-  * Multiplication
-  x Multiplication (alt)
-  / Division
-  ^ Exponentiation
+  +  Addition
+  -  Subtraction
+  *  Multiplication
+  x  Multiplication (alt)
+  /  Division
+  ^  Exponentiation
 
 Supported unary operators:
-  - Negation
-  + Identity
+  -  Negation
+  +  Identity
+  -/ Square Root
 
 Traditional order of operations supported. Use parentheses to force grouping.
     "

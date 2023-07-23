@@ -56,14 +56,14 @@ module Tokenizer =
         if (w = [] && p = []) then (rem, None)
         else (rem, Number(lstToString w, lstToString p) |> Some)
 
-    let isOperator (op: char list) (c: char) =
+    let isPartOfOperator (op: char list) (c: char) =
         let str = (op @ [c]) |> lstToString
         OperatorTokens.All
         |> List.exists (fun o -> o.StartsWith str)
 
     let rec parseOperator (feed: char list) (op: char list) =
         match feed with
-        | c::tail when isOperator op c ->
+        | c::tail when isPartOfOperator op c ->
             op @ [c] |> parseOperator tail
         | _ -> (op, feed)
 
@@ -88,7 +88,7 @@ module Tokenizer =
         match feed with
         | '('::_
         | ')'::_ -> IsParen
-        | o::_ when o |> isOperator [] -> IsOper
+        | o::_ when o |> isPartOfOperator [] -> IsOper
         | '.'::d::_ when d |> isDigit -> IsNum
         | d::_ when d |> isDigit -> IsNum
         | ' '::_ -> IsIgnore
