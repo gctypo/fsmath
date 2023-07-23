@@ -96,6 +96,8 @@ let groupUnary_Test (tokens: string[], expr: string) =
 [<TestCase([|"-";"100";"*";"(";"3";"*";"-";"100";")"|], "(-100) * {3 * (-100)}")>]
 [<TestCase([|"-";"(";"3";"+";"4";")"|], "(-{3 + 4})")>]
 [<TestCase([|"3";"*";"(";"-";"100";")"|], "3 * {(-100)}")>]
+[<TestCase([|"-";"(";"-";"7";"+";"4";")";"*";"100"|], "(-{(-7) + 4}) * 100")>]
+[<TestCase([|"-";"(";"3";"+";"-";"7";")";"*";"100"|], "(-{3 + (-7)}) * 100")>]
 let groupUnary_Test_Paren (tokens: string[], expr: string) =
     let body = tokens |> arrayToWrappedTokens |> syntaxParen
     groupUnary body []

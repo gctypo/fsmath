@@ -113,12 +113,15 @@ module Syntax =
         match unparsed with
         // Ex: {- 100} -> {(-100)}
         | OperNode(op)::EvalNode(rhs)::tail when parsed = [] ->
-            parsed @ [UnaryExpression(op, rhs)]
+            // Group recursively within if multi-layer
+            let recursed = (unpackNode rhs, []) ||> groupUnary |> packNodes
+            parsed @ [UnaryExpression(op, recursed)]
             |> groupUnary tail
         // Ex: {* - 100} -> {* (-100)}
         | OperNode(seekHead)::OperNode(op)::EvalNode(rhs)::tail ->
             let rewrappedSeek = Operator seekHead |> TokenWrapper
-            parsed @ [rewrappedSeek] @ [UnaryExpression(op, rhs)]
+            let recursed = (unpackNode rhs, []) ||> groupUnary |> packNodes
+            parsed @ [rewrappedSeek] @ [UnaryExpression(op, recursed)]
             |> groupUnary tail
         // Ex: {{- 100} * - 100} -> {{(-100)} * (-100)}
         | UnparsedGroup(inner)::tail ->

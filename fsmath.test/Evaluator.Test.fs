@@ -56,6 +56,8 @@ let evaluateNode_Test_Nested () =
 [<TestCase("3 + 4 * 2 + 1", 12)>]
 [<TestCase("3 * (4 + 2) * 1", 18)>]
 [<TestCase("-(3 + 4) * 100", -700)>]
+[<TestCase("-(-7 + 4) * 100", 300)>]
+[<TestCase("-(3 + -7) * 100", 400)>]
 let evaluateString_Test (input: string, exp: decimal) =
     evaluateString input
     |> should equal exp
