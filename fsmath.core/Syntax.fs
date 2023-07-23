@@ -130,7 +130,7 @@ module Syntax =
     let syntaxUnary (unparsed: SyntaxNode list) = groupUnary unparsed []
 
     // Here be dragons
-    let rec syntaxBinaryOrd (ops: string[]) (unparsed: SyntaxNode list) =
+    let rec syntaxBinaryOrd (ops: string list) (unparsed: SyntaxNode list) =
         // Repeat syntaxBinaryOrd recursively on all child nodes
         let rec descend (node: SyntaxNode) =
             match node with
@@ -142,25 +142,24 @@ module Syntax =
             | LiteralValue _ | TokenWrapper _ -> node
 
         // binds binop pairs while filtering nodes
-        let rec groupBinaryOrd (ops: string[]) (unparsed: SyntaxNode list)
-                (parsed: SyntaxNode list) =
+        let rec groupBinaryOrd (unparsed: SyntaxNode list) (parsed: SyntaxNode list) =
             match unparsed with
             // {}3 * 4 * 2 -> {}(3*4) * 2   Does NOT add new expression to parsed list
-            | EvalNode(lhs)::OperNode(op)::EvalNode(rhs)::tail when ops |> Array.contains op ->
+            | EvalNode(lhs)::OperNode(op)::EvalNode(rhs)::tail when ops |> List.contains op ->
                 let newTail = BinaryExpression(descend lhs, op, descend rhs)::tail
-                groupBinaryOrd ops newTail parsed
+                groupBinaryOrd newTail parsed
             // {}3 + 4 * 2 -> {3 + 4} * 2
             | n::tail ->
                 parsed @ [descend n]
-                |> groupBinaryOrd ops tail
+                |> groupBinaryOrd tail
             // {({3 + 4}*2)} -> done
             | [] -> parsed
 
-        groupBinaryOrd ops unparsed [] |> packNodes
+        groupBinaryOrd unparsed [] |> packNodes
 
-    let BIN_OPS_POW = [|"^"|]
-    let BIN_OPS_MULT = [|"*";"/"|]
-    let BIN_OPS_ADD = [|"+";"-"|]
+    let BIN_OPS_POW = ["^"]
+    let BIN_OPS_MULT = ["*";"/"]
+    let BIN_OPS_ADD = ["+";"-"]
 
     let syntaxBinary (unparsed: SyntaxNode list) =
         unparsed

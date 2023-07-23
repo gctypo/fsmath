@@ -107,7 +107,7 @@ let groupUnary_Test_Paren (tokens: string[], expr: string) =
 [<TestCase([|"4";"*";"(";"3";"+";"2";"*";"4";")"|], "(4*{3 + (2*4)})")>]
 let groupBinaryOrd_Test (tokens: string[], expr: string) =
     let body = tokens |> arrayToWrappedTokens |> syntaxParen
-    syntaxBinaryOrd [|"*"|] body
+    syntaxBinaryOrd ["*"] body
     |> unpackNode |> nodesToString
     |> should equal expr
 
