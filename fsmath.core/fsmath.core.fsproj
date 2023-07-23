@@ -9,6 +9,7 @@
         <Compile Include="OperatorTokens.fs" />
         <Compile Include="Tokenizer.fs" />
         <Compile Include="Syntax.fs" />
+        <Compile Include="Evaluator.fs" />
     </ItemGroup>
 
 </Project>
