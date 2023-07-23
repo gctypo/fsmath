@@ -17,6 +17,7 @@ let evaluateLiteral_Test (literal: string, exp: decimal) =
 
 [<Test>]
 [<TestCase("-","100", -100)>]
+[<TestCase("+","100", 100)>]
 let evaluateUnary_Test (op: string, rhs: string, exp: decimal) =
     UnaryExpression(op, LiteralValue(rhs))
     |> evaluateNode

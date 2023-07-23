@@ -22,6 +22,7 @@ Supported binary operators:
 
 Supported unary operators:
   - Negation
+  + Identity
 
 Traditional order of operations supported. Use parentheses to force grouping.
     "

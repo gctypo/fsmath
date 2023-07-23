@@ -11,6 +11,7 @@ let All = Exponential @ Multiplicative @ Additive
 let getUnaryOper (oper: string) =
     match oper with
     | "-" -> (fun (v:decimal) -> -v)
+    | "+" -> id
     | _ -> raise <| FormatException $"Unrecognized unary operator '{oper}'"
 
 let getBinaryOper (oper: string) =
